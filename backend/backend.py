@@ -4,19 +4,21 @@ import re
 
 
 # '''მომხმარებლების ცხრილი სადაც ინახება მათი სარეგისტრაციო ინფორმაცია'''
-conn = sqlite3.connect('customers.db')
-conn.row_factory = sqlite3.Row
+# conn = sqlite3.connect('customers.db')
+# conn.row_factory = sqlite3.Row
 
-cursor = conn.cursor()
+# cursor = conn.cursor()
 
-cursor.execute('''create table if not exists customers(
-               id integer primary key autoincrement,
-               username Nvarchar(50),
-               phone varchar(50),
-               email varchar(100),
-               password varchar(50)
-               )''')
-conn.commit()
+# cursor.execute('''create table if not exists customers(
+#                id integer primary key autoincrement,
+#                username Nvarchar(50),
+#                phone varchar(50),
+#                email varchar(100),
+#                password varchar(50)
+#                )''')
+# conn.commit()
+
+
 
 
 '''ეს კლასსი ამოწმებს მომხმარებელთა რეგისტრაციას და ინფორმაციას'''
@@ -30,9 +32,10 @@ conn.commit()
 #         self.has_digit = False
 #         self.has_upper = False
 #         self.has_special = False
-#         self.check_mail = False
+#         self.check_email = False
 #         self.number = False
-
+ 
+#         # ეს ფუნქცია ამატებს ინფორმაციას ბაზაში
 #     def save_to_db(self):
 #         cursor.execute("SELECT * FROM customers WHERE email = ?", (self.email,))
 #         if cursor.fetchone():
@@ -57,11 +60,12 @@ conn.commit()
 #         print("✅ მონაცემები შენახულია ბაზაში!")
 #         return True
 
+#        # ამოწმებს ყველაფერს თუ ყველაფერი სწორია იძახებს save_to_db მეთოდს 
 #     def checkR(self):
 #         if re.match(self.pattern, self.email):
-#             self.check_mail = True
+#             self.check_email = True
         
-#         if not self.check_mail:
+#         if not self.check_email:
 #             print("❌ მეილი არასწორია")
 #             return
 
@@ -97,46 +101,75 @@ conn.commit()
 #             print("❌ ტელეფონის ნომერი არასწორია")
 #             return
 
-#         if self.has_digit and self.has_upper and self.has_special and self.check_mail and self.number and self.save_to_db():
+#         if self.has_digit and self.has_upper and self.has_special and self.check_email and self.number and self.save_to_db():
 #             print("✅ წარმატებით შეხვედით")
 #             # self.save_to_db()
 
         
 
 # C1 = customerR("ლადო", '123456789', "lado123@gmail.com","Ladomosk123!")
-# C1.checker()
+# C1.checkR()
 
 # C2 = customerR("მათე", "987654321", "mate123@gmail.com", "Mateber123!")
-# C2.checker()
+# C2.checkR()
 
 # C3 = customerR("lado", "12345", "lado123@gm1.com", "lado123")
-# C3.checker()
+# C3.checkR()
 
-# C1 = customerR("ლადო", '123456789', "lado123@gmail.com","Ladomosk123!")
-# C1.checker()
+# C4 = customerR("ლადო", '123456789', "lado1423@gmail.com","Ladomosk123!")
+# C4.checkR()
+
+# C5 = customerR("giorgi", "587314561", "gio123@gmail.com", "G978766123@8")
+# C5.checkR()
 
 
 '''მომხმარებლების ავტორიზაცია თუ უკვე გავლილი აქვს რეგისტრაცია'''
 
-class customerV:
-    def __init__(self, username, email, passsword):
-        self.username = None
-        self.email = email
-        self.passsword = passsword
-        self.ver_mail = {} #დარეგისტრირებული მეილები
-        self.ver_name = {} #დარეგისტრირებული სახელები
+# class customerV:
+#     def __init__(self, login, password):
+#         if "@" in login:               #ნახულობს მეილით შედის თუ სახელით
+#             self.username = None
+#             self.email = login
+#         else:
+#             self.username = login
+#             self.email = None
+#         self.password = password
+#         self.ver_email = {}  # დარეგისტრირებული მეილები
+#         self.ver_name = {}  # დარეგისტრირებული სახელები
 
 
-    def checkV(self):
-        cursor.execute("SELECT email, username, password FROM customers")
-        rows = cursor.fetchall()
+#          #ამოწმებს მომხმარებელს შეყავს თუ არა სწორი მონაცემები და აბრუნებს შესაბამის ინფორმაციას
+#     def checkV(self):
+#         cursor.execute("SELECT email, username, password FROM customers")
+#         rows = cursor.fetchall()
 
-        for row in rows:
-            self.ver_mail[row['email']] = row['password']
-            self.ver_name[row['username']] = row['password']
+#         for row in rows:
+#             self.ver_email[row['email']] = row['password']
+#             self.ver_name[row['username']] = row['password']
 
-        # for mail in self.ver_mail:
-        #     if self.email == mail
+#         if self.email:
+#             correct_password = self.ver_email.get(self.email)
+#         else:
+#             correct_password = self.ver_name.get(self.username)
+
+#         if correct_password and correct_password == self.password:
+#             print("✅მომხმარებელი წარმატებით შევიდა")
+#         else:
+#             print("❌ პაროლი ან მომხმარებელი არასწორია")
+
+# C1 = customerV("ლადო", "Ladomosk123!")
+# C1.checkV()
+
+# C = customerV("lado123@gmail.com", "Ladomosk123!")
+# C.checkV()
+
+# C2 = customerV("მათე", "Mateber123!")
+# C2.checkV()
+
+        
+        
+
+        
         
 
 
@@ -157,3 +190,13 @@ class customerV:
 #         else:
 #             return False
     
+
+
+
+
+
+
+
+
+
+
