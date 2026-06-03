@@ -6,18 +6,23 @@ This module contains all frontend logic and display functions
 import sys
 from pathlib import Path
 
-# Add parent directory to path to import backend
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from backend.backend import customerR
+
 from PyQt5.QtWidgets import (QApplication, QWidget, QLineEdit, QLabel,
-                              QPushButton, QVBoxLayout, QCheckBox ,QStackedWidget)
+                              QPushButton, QVBoxLayout, QHBoxLayout,
+                              QCheckBox, QStackedWidget, QFrame, QDialog)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 
+# ფერები
 DARK_BG    = "#1a120b"
 GOLD       = "#d4af37"
 LIGHT_TEXT = "#f5e6c8"
 INPUT_BG   = "#251a0f"
+NAV_BG     = "#0f0a05"
+HERO_BG    = "#2a1a0a"
 
 MAIN_STYLE = f"""
     QWidget {{
@@ -79,7 +84,7 @@ MAIN_STYLE = f"""
 """
 
 TITLE_LABEL_STYLE = f"color: {LIGHT_TEXT}; font-size: 28px; letter-spacing: 1px;"
-SMALL_LABEL_STYLE = f"color: rgba(212,175,55,0.75); font-size: 11px; letter-spacing: 3px; text-transform: uppercase;"
+SMALL_LABEL_STYLE = f"color: rgba(212,175,55,0.75); font-size: 11px; letter-spacing: 3px;"
 BACK_BTN_STYLE = f"""
     QPushButton {{
         background: transparent;
@@ -93,12 +98,28 @@ BACK_BTN_STYLE = f"""
     QPushButton:hover {{ color: {GOLD}; }}
 """
 
+class MenuWindow(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("მენიუ")
+        self.resize(800, 600)
+        self.setStyleSheet(f"background-color: {DARK_BG}; color: {LIGHT_TEXT};")
+        
+        layout = QVBoxLayout(self)
+        
+        title = QLabel("ჩვენი მენიუ")
+        title.setFont(QFont("Georgia", 24))
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
+        
+        #მენიუს შინაარსი
+
 
 class Mainwindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Restaurant Management System")
-        self.resize(900, 700)
+        self.resize(1000, 750)
         self.setStyleSheet(MAIN_STYLE)
 
         layout = QVBoxLayout()
@@ -109,13 +130,17 @@ class Mainwindow(QWidget):
         layout.addWidget(self.stack)
 
         self.choose_page   = self.create_choose_page()
-        self.login_page = self.create_login_page()
+        self.login_page    = self.create_login_page()
         self.register_page = self.create_register_page()
+        self.main_page     = self.create_main_page()
 
-        self.stack.addWidget(self.choose_page)
-        self.stack.addWidget(self.login_page)
-        self.stack.addWidget(self.register_page)
+        self.stack.addWidget(self.choose_page)    # index 0
+        self.stack.addWidget(self.login_page)     # index 1
+        self.stack.addWidget(self.register_page)  # index 2
+        self.stack.addWidget(self.main_page)      # index 3
 
+    
+    # არჩევის გვერდი
     def create_choose_page(self):
         page = QWidget()
         layout = QVBoxLayout()
@@ -145,7 +170,9 @@ class Mainwindow(QWidget):
         layout.addSpacing(12)
         layout.addWidget(self.btn1, 0, Qt.AlignCenter)
         return page
-
+    
+    # 1 ავტორიზაციის გვერდი
+     
     def create_login_page(self):
         page = QWidget()
         layout = QVBoxLayout()
@@ -166,38 +193,34 @@ class Mainwindow(QWidget):
         ornament.setStyleSheet("color: rgba(212,175,55,0.5); font-size: 16px; letter-spacing: 8px;")
         ornament.setAlignment(Qt.AlignCenter)
 
-        # სახელის შეყვანა
         lbl_name = QLabel("სახელი / მეილი")
         lbl_name.setStyleSheet(SMALL_LABEL_STYLE)
 
-        self.txt_name = QLineEdit()
-        self.txt_name.setPlaceholderText("შეიყვანეთ სახელი, მეილი...")
-        self.txt_name.setFixedWidth(340)
+        self.login_name = QLineEdit()
+        self.login_name.setPlaceholderText("შეიყვანეთ სახელი, მეილი...")
+        self.login_name.setFixedWidth(340)
 
-        # შეცდომის ტექსტი სახელისთვის (თავიდან ცარიელია)
-        self.error_name = QLabel("")
-        self.error_name.setStyleSheet("color: #ff4d4d; font-size: 11px;")
-        self.error_name.setFixedWidth(340)
+        self.login_red_name = QLabel("")
+        self.login_red_name.setStyleSheet("color: #ff4d4d; font-size: 11px;")
+        self.login_red_name.setFixedWidth(340)
 
         lbl_pass = QLabel("პაროლი")
         lbl_pass.setStyleSheet(SMALL_LABEL_STYLE)
 
-        self.txt_pass = QLineEdit()
-        self.txt_pass.setPlaceholderText("შეიყვანეთ პაროლი...")
-        self.txt_pass.setEchoMode(QLineEdit.Password)
-        self.txt_pass.setFixedWidth(340)
+        self.login_pass = QLineEdit()
+        self.login_pass.setPlaceholderText("შეიყვანეთ პაროლი...")
+        self.login_pass.setEchoMode(QLineEdit.Password)
+        self.login_pass.setFixedWidth(340)
 
-        # შეცდომის ტექსტი პაროლისთვის (თავიდან ცარიელია)
-        self.error_pass = QLabel("")
-        self.error_pass.setStyleSheet("color: #ff4d4d; font-size: 11px;")
-        self.error_pass.setFixedWidth(340)
-        
-        # პაროლის ჩვენება
+        self.login_red_pass = QLabel("")
+        self.login_red_pass.setStyleSheet("color: #ff4d4d; font-size: 11px;")
+        self.login_red_pass.setFixedWidth(340)
+
         self.show_pass = QCheckBox("პაროლის ჩვენება")
         self.show_pass.stateChanged.connect(self.paroli)
 
         self.enter = QPushButton("შესვლა")
-        self.enter.clicked.connect(self.check_login)  
+        self.enter.clicked.connect(self.check_login)
 
         self.reg = QPushButton("რეგისტრაცია")
         self.reg.clicked.connect(lambda: self.stack.setCurrentIndex(2))
@@ -210,58 +233,49 @@ class Mainwindow(QWidget):
         layout.addWidget(title)
         layout.addWidget(ornament)
         layout.addSpacing(8)
-
         layout.addWidget(lbl_name, 0, Qt.AlignCenter)
-        layout.addWidget(self.txt_name, 0, Qt.AlignCenter)
-        layout.addWidget(self.error_name, 0, Qt.AlignCenter)
-
+        layout.addWidget(self.login_name, 0, Qt.AlignCenter)
+        layout.addWidget(self.login_red_name, 0, Qt.AlignCenter)
         layout.addSpacing(4)
         layout.addWidget(lbl_pass, 0, Qt.AlignCenter)
-        layout.addWidget(self.txt_pass, 0, Qt.AlignCenter)
-        layout.addWidget(self.error_pass, 0, Qt.AlignCenter)
+        layout.addWidget(self.login_pass, 0, Qt.AlignCenter)
+        layout.addWidget(self.login_red_pass, 0, Qt.AlignCenter)
         layout.addWidget(self.show_pass, 0, Qt.AlignLeft)
-
         layout.addSpacing(12)
         layout.addWidget(self.enter, 0, Qt.AlignCenter)
         layout.addWidget(self.reg, 0, Qt.AlignCenter)
         layout.addWidget(self.ukan, 0, Qt.AlignCenter)
-
         return page
 
     def check_login(self):
-        is_valid = True
-
-        # სახელის შემოწმება
-        if not self.txt_name.text().strip():
-            # თუ ცარიელია, ხაზი წითლდება და იწერება ტექსტი
-            self.txt_name.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
-            self.error_name.setText("შეიყვანეთ სახელი!")
-            is_valid = False
+        valid = True
+        if not self.login_name.text().strip():
+            self.login_name.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
+            self.login_red_name.setText("შეიყვანეთ სახელი!")
+            valid = False
         else:
-            # თუ შევსებულია, უბრუნდება საწყის სტილს (ცარიელი სტრინგი აბრუნებს MAIN_STYLE-ის პარამეტრებს)
-            self.txt_name.setStyleSheet("")
-            self.error_name.setText("")
+            self.login_name.setStyleSheet("")
+            self.login_red_name.setText("")
 
-        # პაროლის შემოწმება
-        if not self.txt_pass.text().strip():
-            self.txt_pass.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
-            self.error_pass.setText("შეიყვანეთ პაროლი!")
-            is_valid = False
+        if not self.login_pass.text().strip():
+            self.login_pass.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
+            self.login_red_pass.setText("შეიყვანეთ პაროლი!")
+            valid = False
         else:
-            self.txt_pass.setStyleSheet("")
-            self.error_pass.setText("")
+            self.login_pass.setStyleSheet("")
+            self.login_red_pass.setText("")
 
-        # თუ ორივე ველი წარმატებით შევსებულია
-        if is_valid:
-            print("მონაცემები სწორია! გადადის მთავარ მენიუში...")
+        # ვალიდაცია — გადადი მთავარ გვერდზე
+        if valid:
+            self.stack.setCurrentIndex(3)
 
     def paroli(self, state):
         if state == Qt.Checked:
-            self.txt_pass.setEchoMode(QLineEdit.Normal)
+            self.login_pass.setEchoMode(QLineEdit.Normal)
         else:
-            self.txt_pass.setEchoMode(QLineEdit.Password)
+            self.login_pass.setEchoMode(QLineEdit.Password)
 
-
+    #  რეგისტრაციის გვერდი
     def create_register_page(self):
         page = QWidget()
         layout = QVBoxLayout()
@@ -282,72 +296,283 @@ class Mainwindow(QWidget):
         ornament.setStyleSheet("color: rgba(212,175,55,0.5); font-size: 16px; letter-spacing: 8px;")
         ornament.setAlignment(Qt.AlignCenter)
 
-        # რეგისტრაციის სახელი
         lbl_name = QLabel("სახელი:")
         lbl_name.setStyleSheet(SMALL_LABEL_STYLE)
+        self.reg_name = QLineEdit()
+        self.reg_name.setPlaceholderText("შეიყვანეთ სახელი...")
+        self.reg_name.setFixedWidth(340)
+        self.reg_red_name = QLabel("")
+        self.reg_red_name.setStyleSheet("color: #ff4d4d; font-size: 11px;")
+        self.reg_red_name.setFixedWidth(340)
 
-        self.name = QLineEdit()
-        self.name.setPlaceholderText("შეიყვანეთ სახელი...")
-        self.name.setFixedWidth(340)
-
-        # რეგისტრაციის მეილი
         lbl_email = QLabel("მეილი:")
         lbl_email.setStyleSheet(SMALL_LABEL_STYLE)
+        self.reg_email = QLineEdit()
+        self.reg_email.setPlaceholderText("შეიყვანეთ მეილი...")
+        self.reg_email.setFixedWidth(340)
+        self.reg_red_email = QLabel("")
+        self.reg_red_email.setStyleSheet("color: #ff4d4d; font-size: 11px;")
+        self.reg_red_email.setFixedWidth(340)
 
-        self.txt_email = QLineEdit()
-        self.txt_email.setPlaceholderText("შეიყვანეთ მეილი...") 
-        self.txt_email.setFixedWidth(340)
-
-        # რეგისტრაციის ნომერი
         lbl_num = QLabel("ნომერი:")
         lbl_num.setStyleSheet(SMALL_LABEL_STYLE)
+        self.reg_num = QLineEdit()
+        self.reg_num.setPlaceholderText("შეიყვანეთ ნომერი...")
+        self.reg_num.setFixedWidth(340)
+        self.reg_red_num = QLabel("")
+        self.reg_red_num.setStyleSheet("color: #ff4d4d; font-size: 11px;")
+        self.reg_red_num.setFixedWidth(340)
 
-        self.txt_num = QLineEdit()
-        self.txt_num.setPlaceholderText("შეიყვანეთ ნომერი...")
-        self.txt_num.setFixedWidth(340)
+        lbl_pass = QLabel("პაროლი:")
+        lbl_pass.setStyleSheet(SMALL_LABEL_STYLE)
+        self.reg_pass = QLineEdit()
+        self.reg_pass.setPlaceholderText("შეიყვანეთ პაროლი...")
+        self.reg_pass.setEchoMode(QLineEdit.Password)
+        self.reg_pass.setFixedWidth(340)
+        self.reg_red_pass = QLabel("")
+        self.reg_red_pass.setStyleSheet("color: #ff4d4d; font-size: 11px;")
+        self.reg_red_pass.setFixedWidth(340)
 
-        lbl_create_pass = QLabel("პაროლი:")
-        lbl_create_pass.setStyleSheet(SMALL_LABEL_STYLE)
+        self.result = QLabel("")
+        self.result.setStyleSheet("color: #ff4d4d; font-size: 11px")
+        self.result.setFixedWidth(340)
 
-        self.txt_create_pass = QLineEdit()
-        self.txt_create_pass.setPlaceholderText("შეიყვანეთ პაროლი...")
-        self.txt_create_pass.setEchoMode(QLineEdit.Password)
-        self.txt_create_pass.setFixedWidth(340)
-        
-        # პაროლის ჩვენება
-        self.show_pass = QCheckBox("პაროლის ჩვენება")
-        self.show_pass.stateChanged.connect(self.paroli1)
+        self.show_pass_reg = QCheckBox("პაროლის ჩვენება")
+        self.show_pass_reg.stateChanged.connect(self.paroli1)
 
         self.button = QPushButton("რეგისტრაცია")
-        # self.button.clicked.connect()
+        self.button.clicked.connect(self.register_check)
+        self.button.clicked.connect(self.register_user)
+
+        ukan_reg = QPushButton("← უკან")
+        ukan_reg.setStyleSheet(BACK_BTN_STYLE)
+        ukan_reg.clicked.connect(lambda: self.stack.setCurrentIndex(1))
 
         layout.addWidget(subtitle)
         layout.addWidget(title)
         layout.addWidget(ornament)
 
         layout.addWidget(lbl_name, 0, Qt.AlignLeft)
-        layout.addWidget(self.name, 0, Qt.AlignCenter)
+        layout.addWidget(self.reg_name, 0, Qt.AlignCenter)
+        layout.addWidget(self.reg_red_name, 0, Qt.AlignLeft)
         
         layout.addWidget(lbl_email, 0, Qt.AlignLeft)
-        layout.addWidget(self.txt_email, 0, Qt.AlignCenter)
-
+        layout.addWidget(self.reg_email, 0, Qt.AlignCenter)
+        layout.addWidget(self.reg_red_email, 0, Qt.AlignLeft)
+        
         layout.addWidget(lbl_num, 0, Qt.AlignLeft)
-        layout.addWidget(self.txt_num, 0, Qt.AlignCenter)
-
-        layout.addWidget(lbl_create_pass, 0, Qt.AlignLeft)
-        layout.addWidget(self.txt_create_pass, 0, Qt.AlignCenter)
-
-        layout.addWidget(self.show_pass, 0, Qt.AlignLeft)
+        layout.addWidget(self.reg_num, 0, Qt.AlignCenter)
+        layout.addWidget(self.reg_red_num, 0, Qt.AlignLeft)
+        
+        layout.addWidget(lbl_pass, 0, Qt.AlignLeft)
+        layout.addWidget(self.reg_pass, 0, Qt.AlignCenter)
+        layout.addWidget(self.reg_red_pass, 0, Qt.AlignLeft)
+        
+        layout.addWidget(self.result, 0, Qt.AlignCenter)
+        
+        layout.addWidget(self.show_pass_reg, 0, Qt.AlignLeft)
+        
         layout.addWidget(self.button, 0, Qt.AlignCenter)
-
-
+        
+        layout.addWidget(ukan_reg, 0, Qt.AlignCenter)
         return page
+
+    def register_check(self):
+        if not self.reg_name.text().strip():
+            self.reg_name.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
+            self.reg_red_name.setText("შეიყვანეთ სახელი!")
+        else:
+            self.reg_name.setStyleSheet("")
+            self.reg_red_name.setText("")
+
+        if not self.reg_email.text().strip():
+            self.reg_email.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
+            self.reg_red_email.setText("შეიყვანეთ მეილი!")
+        else:
+            self.reg_email.setStyleSheet("")
+            self.reg_red_email.setText("")
+
+        if not self.reg_num.text().strip():
+            self.reg_num.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
+            self.reg_red_num.setText("შეიყვანეთ ნომერი!")
+        else:
+            self.reg_num.setStyleSheet("")
+            self.reg_red_num.setText("")
+
+        if not self.reg_pass.text().strip():
+            self.reg_pass.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
+            self.reg_red_pass.setText("შეიყვანეთ პაროლი!")
+        else:
+            self.reg_pass.setStyleSheet("")
+            self.reg_red_pass.setText("")
+
     def paroli1(self, state):
         if state == Qt.Checked:
-            self.txt_create_pass.setEchoMode(QLineEdit.Normal)
+            self.reg_pass.setEchoMode(QLineEdit.Normal)
         else:
-            self.txt_create_pass.setEchoMode(QLineEdit.Password)
+            self.reg_pass.setEchoMode(QLineEdit.Password)
+
+    def register_user(self):
+        username = self.reg_name.text().strip()
+        email    = self.reg_email.text().strip()
+        phone    = self.reg_num.text().strip()
+        password = self.reg_pass.text().strip()
+        customer = customerR(username, phone, email, password)
+        self.result.setText(customer.checkR())
+
+    # მთავარი გვერდი
+    def create_main_page(self):
+        page = QWidget()
+        page.setStyleSheet(f"background-color: {DARK_BG};")
+        main_layout = QVBoxLayout(page)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        navbar = QWidget()
+        navbar.setFixedHeight(52)
+        navbar.setStyleSheet(f"background-color: {NAV_BG};")
+        nav_layout = QHBoxLayout(navbar)
+        nav_layout.setContentsMargins(30, 0, 30, 0)
+
+        about_btn = self._nav_btn("ABOUT")
+        # about_btn.clicked.connect(self.open_about)
+
+        menu_btn = self._nav_btn("MENUS")
+        menu_btn.clicked.connect(self.open_menu)
+
+
+
+        nav_layout.addWidget(about_btn)
+        nav_layout.addWidget(menu_btn)
+
+        nav_layout.addStretch()
+
+        logo = QLabel("nammeee")
+        logo.setFont(QFont("Georgia", 18))
+        logo.setStyleSheet(f"color: {GOLD}; letter-spacing: 2px;")
+        logo.setAlignment(Qt.AlignCenter)
+        nav_layout.addWidget(logo)
+
+        nav_layout.addStretch()
+
+        right_links = ["GIFT CARD", "RESERVATIONS", "CONTACT US"]
+        for text in right_links:
+            nav_layout.addWidget(self._nav_btn(text))
+
+        # გასვლის ღილაკი navbar-ში
+        logout_btn = QPushButton("Log out")
+        logout_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent;
+                border: none;
+                color: rgba(212,175,55,0.5);
+                font-size: 11px;
+                letter-spacing: 2px;
+                padding: 6px 10px;
+                min-width: 0;
+            }}
+            QPushButton:hover {{ color: #ff4d4d; }}
+        """)
+        logout_btn.setCursor(Qt.PointingHandCursor)
+        logout_btn.clicked.connect(lambda: self.stack.setCurrentIndex(0))
+        nav_layout.addWidget(logout_btn)
+
+        hero = QWidget()
+        hero.setMinimumHeight(460)
+        hero.setStyleSheet(f"""
+            background: qlineargradient(
+                x1:0, y1:0, x2:0, y2:1,
+                stop:0 #1a0e05,
+                stop:0.4 #2e1a08,
+                stop:1 #1a0e05
+            );
+        """)
+        hero_layout = QVBoxLayout(hero)
+        hero_layout.setAlignment(Qt.AlignCenter)
+        hero_layout.setSpacing(14)
+
+        welcome = QLabel("WELCOME")
+        welcome.setFont(QFont("Arial", 58, QFont.Bold))
+        welcome.setStyleSheet(f"color: #ffffff; letter-spacing: 10px; background: transparent;")
+        welcome.setAlignment(Qt.AlignCenter)
+
+        sub = QLabel("ragacaa")
+        sub.setFont(QFont("Georgia", 12))
+        sub.setStyleSheet("color: rgba(255,255,255,180); background: transparent; letter-spacing: 1px;")
+        sub.setAlignment(Qt.AlignCenter)
+
+        # ოქროსფერი გამყოფი ხაზი
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFixedWidth(120)
+        line.setStyleSheet(f"color: {GOLD}; background-color: {GOLD};")
+
+        line_wrapper = QHBoxLayout()
+        line_wrapper.addStretch()
+        line_wrapper.addWidget(line)
+        line_wrapper.addStretch()
+
+        book_btn = QPushButton("BOOK A TABLE")
+        book_btn.setFixedSize(190, 44)
+        book_btn.setFont(QFont("Arial", 10, QFont.Bold))
+        book_btn.setStyleSheet(f"""
+            QPushButton {{
+                color: #ffffff;
+                background: transparent;
+                border: 2px solid #ffffff;
+                letter-spacing: 3px;
+            }}
+            QPushButton:hover {{
+                background: rgba(255,255,255,25);
+                border-color: {GOLD};
+                color: {GOLD};
+            }}
+        """)
+        book_btn.setCursor(Qt.PointingHandCursor)
+        book_btn.clicked.connect
+
+        btn_wrapper = QHBoxLayout()
+        btn_wrapper.addStretch()
+        btn_wrapper.addWidget(book_btn)
+        btn_wrapper.addStretch()
+
+        hero_layout.addStretch()
+        hero_layout.addSpacing(10)
+        hero_layout.addWidget(welcome)
+        hero_layout.addWidget(sub)
+        hero_layout.addSpacing(6)
+        hero_layout.addLayout(line_wrapper)
+        hero_layout.addSpacing(10)
+        hero_layout.addLayout(btn_wrapper)
+        hero_layout.addStretch()
+
+        main_layout.addWidget(navbar)
+        main_layout.addWidget(hero)
+
+        return page
+
+    def _nav_btn(self, text):
+        btn = QPushButton(text)
+        btn.setFlat(True)
+        btn.setFont(QFont("Arial", 9, QFont.Bold))
+        btn.setStyleSheet(f"""
+            QPushButton {{
+                color: #cccccc;
+                background: transparent;
+                border: none;
+                padding: 6px 12px;
+                letter-spacing: 1px;
+                min-width: 0;
+            }}
+            QPushButton:hover {{ color: {GOLD}; }}
+        """)
+        btn.setCursor(Qt.PointingHandCursor)
+        return btn
     
+    def open_menu(self):
+        self.menus_window = MenuWindow()
+        self.menus_window.show()
+
 
 
 if __name__ == "__main__":
