@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from backend.backend import customerR, get_menu, customerV
+from backend.backend import customerR, get_menu, customerV, check_gift_card
 
 from PyQt5.QtWidgets import (QApplication, QWidget, QLineEdit, QLabel,
                               QPushButton, QVBoxLayout, QHBoxLayout,
@@ -99,7 +99,7 @@ BACK_BTN_STYLE = f"""
 """
 
 class MenuWindow(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, login=None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("მენიუ")
         self.resize(800, 600)
@@ -113,12 +113,19 @@ class MenuWindow(QDialog):
         layout.addWidget(title)
         
         #მენიუს შინაარსი
+        items, discount = get_menu(login)
+        if discount:
+            gift_label = QLabel("🎁 გილოცავთ! გაქვთ 20%-იანი ფასდაკლება!")
+            gift_label.setStyleSheet(f"color: {GOLD}; font-size: 14px;")
+            gift_label.setAlignment(Qt.AlignCenter)
+            layout.addWidget(gift_label)
+
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         container = QWidget()
         container_layout = QVBoxLayout(container)
 
-        for name, price in get_menu():  # ← backend-იდან მოაქვს
+        for name, price in items:  # ← backend-იდან მოაქვს
             row = QHBoxLayout()
             row.addWidget(QLabel(name))
             row.addStretch()
@@ -287,6 +294,7 @@ class Mainwindow(QWidget):
             result   = customer.checkV()
         
             if "✅" in result:
+                self.current_login = login
                 self.stack.setCurrentIndex(3)  
             else:
                 self.login_red_pass.setText(result)
@@ -592,9 +600,8 @@ class Mainwindow(QWidget):
         return btn
     
     def open_menu(self):
-        self.menus_window = MenuWindow()
+        self.menus_window = MenuWindow(login=self.current_login)
         self.menus_window.show()
-
 
 
 if __name__ == "__main__":
