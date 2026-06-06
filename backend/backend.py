@@ -3,7 +3,7 @@ import re
 
 
 
-# '''მომხმარებლების ცხრილი სადაც ინახება მათი სარეგისტრაციო ინფორმაცია'''
+'''მომხმარებლების ცხრილი სადაც ინახება მათი სარეგისტრაციო ინფორმაცია'''
 conn = sqlite3.connect('customers.db')
 conn.row_factory = sqlite3.Row
 
@@ -17,6 +17,8 @@ cursor.execute('''create table if not exists customers(
                password varchar(50)
                )''')
 conn.commit()
+
+
 
 
 '''ეს კლასსი ამოწმებს მომხმარებელთა რეგისტრაციას და ინფორმაციას'''
@@ -39,23 +41,6 @@ class customerR:
             return "❌ ეს მეილი უკვე რეგისტრირებულია!"
             # return False
 
-        cursor.execute("SELECT * FROM customers WHERE username = ?", (self.username,))
-        if cursor.fetchone():
-            return "❌ ეს მომხმარებლის სახელი უკვე დაკავებულია!"
-            # return False
-        
-        cursor.execute("select * from customers Where phone = ?", (self.phone,))
-        if cursor.fetchone():
-            return"❌ ეს ნომერი უკვე დარეგისტრრირებულია"
-            # return False
-
-        cursor.execute("""
-            INSERT INTO customers (username, phone, email, password)
-            VALUES (?, ?, ?, ?)
-        """, (self.username, self.phone, self.email, self.password))
-        conn.commit()
-        # print("✅ მონაცემები შენახულია ბაზაში!")
-        return True
 
     def checkR(self):
         if re.match(self.pattern, self.email):
@@ -63,6 +48,16 @@ class customerR:
         
         if not self.check_mail:
             return "❌ მეილი არასწორია"
+
+#        # ამოწმებს ყველაფერს თუ ყველაფერი სწორია იძახებს save_to_db მეთოდს 
+#     def checkR(self):
+#         if re.match(self.pattern, self.email):
+#             self.check_email = True
+        
+#         if not self.check_email:
+#             print("❌ მეილი არასწორია")
+#             return
+
 
         if len(self.password) < 8:
             return "❌ პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო"
@@ -92,10 +87,15 @@ class customerR:
             return "❌ ტელეფონის ნომერი არასწორია"
         
 
+
         if self.has_digit and self.has_upper and self.has_special and self.check_mail and self.number and self.save_to_db():
             self.save_to_db()
             return "✅ წარმატებით შეხვედით"
             
+
+#         if self.has_digit and self.has_upper and self.has_special and self.check_email and self.number and self.save_to_db():
+#             print("✅ წარმატებით შეხვედით")
+#             # self.save_to_db()
 
         
 
@@ -103,16 +103,20 @@ class customerR:
 # C1.checkR()
 
 # C2 = customerR("მათე", "987654321", "mate123@gmail.com", "Mateber123!")
-# C2.checker()
+# C2.checkR()
 
 # C3 = customerR("lado", "12345", "lado123@gm1.com", "lado123")
-# C3.checker()
+# C3.checkR()
 
-# C1 = customerR("ლადო", '123456789', "lado123@gmail.com","Ladomosk123!")
-# C1.checker()
+# C4 = customerR("ლადო", '123456789', "lado1423@gmail.com","Ladomosk123!")
+# C4.checkR()
+
+# C5 = customerR("giorgi", "587314561", "gio123@gmail.com", "G978766123@8")
+# C5.checkR()
 
 
 '''მომხმარებლების ავტორიზაცია თუ უკვე გავლილი აქვს რეგისტრაცია'''
+
 
 class customerV:
     def __init__(self, login, password):
@@ -142,18 +146,61 @@ class customerV:
             correct_password = self.ver_name.get(self.username)
 
         if correct_password and correct_password == self.password:
-            print("✅მომხმარებელი წარმატებით შევიდა")
+            return("✅მომხმარებელი წარმატებით შევიდა")
         else:
-            print("❌ პაროლი ან მომხმარებელი არასწორია")
+            return("❌ პაროლი ან მომხმარებელი არასწორია")
 
-C1 = customerV("ლადო", "Ladomosk123!")
-C1.checkV()
+# C1 = customerV("ლადო", "Ladomosk123!")
+# C1.checkV()
 
-C = customerV("lado123@gmail.com", "Ladomosk123!")
-C.checkV()
+# C = customerV("lado123@gmail.com", "Ladomosk123!")
+# C.checkV()
 
-C2 = customerV("მათე", "Mateber123!")
-C2.checkV()
+# C2 = customerV("მათე", "Mateber123!")
+# C2.checkV()
+
+# class customerV:
+#     def __init__(self, login, password):
+#         if "@" in login:               #ნახულობს მეილით შედის თუ სახელით
+#             self.username = None
+#             self.email = login
+#         else:
+#             self.username = login
+#             self.email = None
+#         self.password = password
+#         self.ver_email = {}  # დარეგისტრირებული მეილები
+#         self.ver_name = {}  # დარეგისტრირებული სახელები
+
+
+#          #ამოწმებს მომხმარებელს შეყავს თუ არა სწორი მონაცემები და აბრუნებს შესაბამის ინფორმაციას
+#     def checkV(self):
+#         cursor.execute("SELECT email, username, password FROM customers")
+#         rows = cursor.fetchall()
+
+#         for row in rows:
+#             self.ver_email[row['email']] = row['password']
+#             self.ver_name[row['username']] = row['password']
+
+#         if self.email:
+#             correct_password = self.ver_email.get(self.email)
+#         else:
+#             correct_password = self.ver_name.get(self.username)
+
+#         if correct_password and correct_password == self.password:
+#             print("✅მომხმარებელი წარმატებით შევიდა")
+#         else:
+#             print("❌ პაროლი ან მომხმარებელი არასწორია")
+
+# C1 = customerV("ლადო", "Ladomosk123!")
+# C1.checkV()
+
+# C = customerV("lado123@gmail.com", "Ladomosk123!")
+# C.checkV()
+
+# C2 = customerV("მათე", "Mateber123!")
+# C2.checkV()
+
+    
         
 
 
@@ -174,3 +221,13 @@ C2.checkV()
 #         else:
 #             return False
     
+
+
+
+
+
+
+
+
+
+
