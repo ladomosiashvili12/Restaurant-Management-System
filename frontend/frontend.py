@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from backend.backend import customerR, get_menu, customerV, check_gift_card
+from backend.backend import customerR, get_menu, customerV #check_gift_card
 
 from PyQt5.QtWidgets import (QApplication, QWidget, QLineEdit, QLabel,
                               QPushButton, QVBoxLayout, QHBoxLayout,
@@ -236,6 +236,10 @@ class Mainwindow(QWidget):
         self.login_red_pass.setStyleSheet("color: #ff4d4d; font-size: 11px;")
         self.login_red_pass.setFixedWidth(340)
 
+        self.witeli_login = QLabel("")
+        self.witeli_login.setStyleSheet("color: #ff4d4d; font-size: 11px;")
+        self.witeli_login.setFixedWidth(340)
+
         self.show_pass = QCheckBox("პაროლის ჩვენება")
         self.show_pass.stateChanged.connect(self.paroli)
 
@@ -252,15 +256,19 @@ class Mainwindow(QWidget):
         layout.addWidget(subtitle)
         layout.addWidget(title)
         layout.addWidget(ornament)
+        
         layout.addSpacing(8)
         layout.addWidget(lbl_name, 0, Qt.AlignCenter)
         layout.addWidget(self.login_name, 0, Qt.AlignCenter)
         layout.addWidget(self.login_red_name, 0, Qt.AlignCenter)
+        
         layout.addSpacing(4)
         layout.addWidget(lbl_pass, 0, Qt.AlignCenter)
         layout.addWidget(self.login_pass, 0, Qt.AlignCenter)
         layout.addWidget(self.login_red_pass, 0, Qt.AlignCenter)
+        layout.addWidget(self.witeli_login, 0, Qt.AlignLeft)
         layout.addWidget(self.show_pass, 0, Qt.AlignLeft)
+        
         layout.addSpacing(12)
         layout.addWidget(self.enter, 0, Qt.AlignCenter)
         layout.addWidget(self.reg, 0, Qt.AlignCenter)
@@ -295,7 +303,7 @@ class Mainwindow(QWidget):
                 self.current_login = login
                 self.stack.setCurrentIndex(3)  
             else:
-                self.login_red_pass.setText(result)
+                self.witeli_login.setText(result)
 
     def paroli(self, state):
         if state == Qt.Checked:
@@ -361,9 +369,9 @@ class Mainwindow(QWidget):
         self.reg_red_pass.setStyleSheet("color: #ff4d4d; font-size: 11px;")
         self.reg_red_pass.setFixedWidth(340)
 
-        self.result = QLabel("")
-        self.result.setStyleSheet("color: #ff4d4d; font-size: 11px")
-        self.result.setFixedWidth(340)
+        self.witeli_reg = QLabel("")
+        self.witeli_reg.setStyleSheet("color: #ff4d4d; font-size: 11px")
+        self.witeli_reg.setFixedWidth(340)
 
         self.show_pass_reg = QCheckBox("პაროლის ჩვენება")
         self.show_pass_reg.stateChanged.connect(self.paroli1)
@@ -396,7 +404,7 @@ class Mainwindow(QWidget):
         layout.addWidget(self.reg_pass, 0, Qt.AlignCenter)
         layout.addWidget(self.reg_red_pass, 0, Qt.AlignLeft)
         
-        layout.addWidget(self.result, 0, Qt.AlignCenter)
+        layout.addWidget(self.witeli_reg, 0, Qt.AlignCenter)
         
         layout.addWidget(self.show_pass_reg, 0, Qt.AlignLeft)
         
@@ -436,18 +444,18 @@ class Mainwindow(QWidget):
             self.reg_red_pass.setText("")
 
         if valid:
-            register    = self.reg_name.text().strip()
+            username    = self.reg_name.text().strip()
             email = self.reg_email.text().strip()
-            num = self.reg_num.text().strip()
+            phone = self.reg_num.text().strip()
             password = self.reg_pass.text().strip()
         
-            customer = customerR(register, email, num, password)
+            customer = customerR(username, phone, email, password)
             result   = customer.checkR()
         
             if "✅" in result:
                 self.stack.setCurrentIndex(3)  
             else:
-                self.reg_red_pass.setText(result)
+                self.witeli_reg.setText(result)
 
     def paroli1(self, state):
         if state == Qt.Checked:
@@ -461,7 +469,7 @@ class Mainwindow(QWidget):
         phone    = self.reg_num.text().strip()
         password = self.reg_pass.text().strip()
         customer = customerR(username, phone, email, password)
-        self.result.setText(customer.checkR())
+        self.witeli_reg.setText(customer.checkR())
 
     # მთავარი გვერდი
     def create_main_page(self):
