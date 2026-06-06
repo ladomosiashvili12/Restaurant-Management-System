@@ -265,7 +265,6 @@ class Mainwindow(QWidget):
         if not self.login_name.text().strip():
             self.login_name.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
             self.login_red_name.setText("შეიყვანეთ სახელი!")
-            valid = False
         else:
             self.login_name.setStyleSheet("")
             self.login_red_name.setText("")
@@ -273,7 +272,6 @@ class Mainwindow(QWidget):
         if not self.login_pass.text().strip():
             self.login_pass.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
             self.login_red_pass.setText("შეიყვანეთ პაროლი!")
-            valid = False
         else:
             self.login_pass.setStyleSheet("")
             self.login_red_pass.setText("")
@@ -400,6 +398,7 @@ class Mainwindow(QWidget):
         return page
 
     def register_check(self):
+        valid = True
         if not self.reg_name.text().strip():
             self.reg_name.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
             self.reg_red_name.setText("შეიყვანეთ სახელი!")
@@ -427,6 +426,20 @@ class Mainwindow(QWidget):
         else:
             self.reg_pass.setStyleSheet("")
             self.reg_red_pass.setText("")
+
+        if valid:
+            register    = self.reg_name.text().strip()
+            email = self.reg_email.text().strip()
+            num = self.reg_num.text().strip()
+            password = self.reg_pass.text().strip()
+        
+            customer = customerR(register, email, num, password)
+            result   = customer.checkR()
+        
+            if "✅" in result:
+                self.stack.setCurrentIndex(3)  
+            else:
+                self.reg_red_pass.setText(result)
 
     def paroli1(self, state):
         if state == Qt.Checked:
