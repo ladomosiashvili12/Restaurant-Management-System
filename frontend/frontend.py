@@ -8,11 +8,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from backend.backend import customerR
+from backend.backend import customerR, get_menu, customerV
 
 from PyQt5.QtWidgets import (QApplication, QWidget, QLineEdit, QLabel,
                               QPushButton, QVBoxLayout, QHBoxLayout,
-                              QCheckBox, QStackedWidget, QFrame, QDialog)
+                              QCheckBox, QStackedWidget, QFrame, QDialog, QScrollArea)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 
@@ -113,7 +113,20 @@ class MenuWindow(QDialog):
         layout.addWidget(title)
         
         #მენიუს შინაარსი
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        container = QWidget()
+        container_layout = QVBoxLayout(container)
 
+        for name, price in get_menu():  # ← backend-იდან მოაქვს
+            row = QHBoxLayout()
+            row.addWidget(QLabel(name))
+            row.addStretch()
+            row.addWidget(QLabel(f"{price} ₾"))
+            container_layout.addLayout(row)
+
+        scroll.setWidget(container)
+        layout.addWidget(scroll)
 
 class Mainwindow(QWidget):
     def __init__(self):
@@ -267,7 +280,16 @@ class Mainwindow(QWidget):
 
         # ვალიდაცია — გადადი მთავარ გვერდზე
         if valid:
-            self.stack.setCurrentIndex(3)
+            login    = self.login_name.text().strip()
+            password = self.login_pass.text().strip()
+        
+            customer = customerV(login, password)
+            result   = customer.checkV()
+        
+            if "✅" in result:
+                self.stack.setCurrentIndex(3)  
+            else:
+                self.login_red_pass.setText(result)
 
     def paroli(self, state):
         if state == Qt.Checked:

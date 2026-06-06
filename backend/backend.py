@@ -19,8 +19,6 @@ cursor.execute('''create table if not exists customers(
 conn.commit()
 
 
-
-
 '''ეს კლასსი ამოწმებს მომხმარებელთა რეგისტრაციას და ინფორმაციას'''
 class customerR:
     def __init__(self, username,  phone, email, password):
@@ -46,18 +44,29 @@ class customerR:
         if re.match(self.pattern, self.email):
             self.check_mail = True
         
+        cursor.execute("select * from customers Where phone = ?", (self.phone,))
+        if cursor.fetchone():
+            return"❌ ეს ნომერი უკვე დარეგისტრირებულია"
+            # return False
+
+        cursor.execute("""
+            INSERT INTO customers (username, phone, email, password)
+            VALUES (?, ?, ?, ?)
+        """, (self.username, self.phone, self.email, self.password))
+        conn.commit()
+        # print("✅ მონაცემები შენახულია ბაზაში!")
+        return True
+
+
+        # ამოწმებს ყველაფერს თუ ყველაფერი სწორია იძახებს save_to_db მეთოდს 
+    def checkR(self):
+        if not self.email:
+            return ""
+        if re.match(self.pattern, self.email):
+            self.check_mail = True
+        
         if not self.check_mail:
             return "❌ მეილი არასწორია"
-
-#        # ამოწმებს ყველაფერს თუ ყველაფერი სწორია იძახებს save_to_db მეთოდს 
-#     def checkR(self):
-#         if re.match(self.pattern, self.email):
-#             self.check_email = True
-        
-#         if not self.check_email:
-#             print("❌ მეილი არასწორია")
-#             return
-
 
         if len(self.password) < 8:
             return "❌ პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო"
@@ -87,37 +96,14 @@ class customerR:
             return "❌ ტელეფონის ნომერი არასწორია"
         
 
-
-        if self.has_digit and self.has_upper and self.has_special and self.check_mail and self.number and self.save_to_db():
-            self.save_to_db()
-            return "✅ წარმატებით შეხვედით"
-            
-
-#         if self.has_digit and self.has_upper and self.has_special and self.check_email and self.number and self.save_to_db():
-#             print("✅ წარმატებით შეხვედით")
-#             # self.save_to_db()
-
-        
-
-# C1 = customerR("ლადო", '123456789', "lado123@gmail.com","Ladomosk123!")
-# C1.checkR()
-
-# C2 = customerR("მათე", "987654321", "mate123@gmail.com", "Mateber123!")
-# C2.checkR()
-
-# C3 = customerR("lado", "12345", "lado123@gm1.com", "lado123")
-# C3.checkR()
-
-# C4 = customerR("ლადო", '123456789', "lado1423@gmail.com","Ladomosk123!")
-# C4.checkR()
-
-# C5 = customerR("giorgi", "587314561", "gio123@gmail.com", "G978766123@8")
-# C5.checkR()
+        result = self.save_to_db()
+        if result is True:
+            return  "✅ წარმატებით შეხვედით"
+        else:
+            return result
 
 
 '''მომხმარებლების ავტორიზაცია თუ უკვე გავლილი აქვს რეგისტრაცია'''
-
-
 class customerV:
     def __init__(self, login, password):
         if "@" in login:               #ნახულობს მეილით შედის თუ სახელით
@@ -146,88 +132,138 @@ class customerV:
             correct_password = self.ver_name.get(self.username)
 
         if correct_password and correct_password == self.password:
-            return("✅მომხმარებელი წარმატებით შევიდა")
+
+            return "✅მომხმარებელი წარმატებით შევიდა"
         else:
-            return("❌ პაროლი ან მომხმარებელი არასწორია")
+            return "❌ პაროლი ან მომხმარებელი არასწორია"
 
-# C1 = customerV("ლადო", "Ladomosk123!")
-# C1.checkV()
-
-# C = customerV("lado123@gmail.com", "Ladomosk123!")
-# C.checkV()
-
-# C2 = customerV("მათე", "Mateber123!")
-# C2.checkV()
-
-# class customerV:
-#     def __init__(self, login, password):
-#         if "@" in login:               #ნახულობს მეილით შედის თუ სახელით
-#             self.username = None
-#             self.email = login
-#         else:
-#             self.username = login
-#             self.email = None
-#         self.password = password
-#         self.ver_email = {}  # დარეგისტრირებული მეილები
-#         self.ver_name = {}  # დარეგისტრირებული სახელები
-
-
-#          #ამოწმებს მომხმარებელს შეყავს თუ არა სწორი მონაცემები და აბრუნებს შესაბამის ინფორმაციას
-#     def checkV(self):
-#         cursor.execute("SELECT email, username, password FROM customers")
-#         rows = cursor.fetchall()
-
-#         for row in rows:
-#             self.ver_email[row['email']] = row['password']
-#             self.ver_name[row['username']] = row['password']
-
-#         if self.email:
-#             correct_password = self.ver_email.get(self.email)
-#         else:
-#             correct_password = self.ver_name.get(self.username)
-
-#         if correct_password and correct_password == self.password:
-#             print("✅მომხმარებელი წარმატებით შევიდა")
-#         else:
-#             print("❌ პაროლი ან მომხმარებელი არასწორია")
-
-# C1 = customerV("ლადო", "Ladomosk123!")
-# C1.checkV()
-
-# C = customerV("lado123@gmail.com", "Ladomosk123!")
-# C.checkV()
-
-# C2 = customerV("მათე", "Mateber123!")
-# C2.checkV()
-
-    
-        
 
 
         
-
 
 
 
 '''მენეჯერის ვერიფიკაცია mail=manager123@res.mng.ge და password=manager1234'''
-# class verification:
-#     def __init__(self, mail, password):
-#         self.mail = mail
-#         self.password = password
+class verification:
+    def __init__(self, mail, password):
+        self.mail = mail
+        self.password = password
     
-#     def checker(self):
-#         if self.mail == "manager123@res.mng.ge" and self.password == "manager1234":
-#             return True
-#         else:
-#             return False
+    def checker(self):
+        if self.mail == "manager123@res.mng.ge" and self.password == "manager1234":
+            return True
+        else:
+            return False
     
 
 
 
+#  მენიუს შექმნის ნაწილი  #
+import sqlite3
+
+conn1 = sqlite3.connect('menu.db') # db3; sqlite, sqlite3
+conn1.row_factory = sqlite3.Row
+
+cursor1 = conn1.cursor()
 
 
+cursor1.execute('''create table if not exists menu(
+               id integer primary key AUTOINCREMENT,
+               product_name Nvarchar(100),
+               price float 
+               )''')
+conn1.commit()
 
 
+# menu_lst = [
+#     # აპეტაიზერი / APPETIZER
+#     ("ყველი იმერული / Imeruli Cheese", 9.0),
+#     ("გუდის ყველი / Guda Cheese", 19.0),
+#     ("სულგუნი / Sulguni Cheese", 12.0),
+#     ("ქართული ყველის დაფა / Georgian Cheese Board", 45.0),
+#     ("მწნილის ასორტი / Assorted pickle veggies", 14.0),
+#     ("ზეთისხილი / Olives", 8.0),
+#     ("ბადრიჯანი ნიგვზით / Eggplant with walnuts", 8.0),
+
+#     # სალათები / SALADS
+#     ("კიტრი-პომიდვრის სალათი / Cucumber&Tomato Salad", 10.0),
+#     ("ქათმის სალათი / Chicken Salad", 14.0),
+#     ("ბერძნული სალათი / Greek Salad", 18.0),
+#     ("ცეზარი / Caesar Salad", 23.0),
+#     ("მწვანე სალათი / Green Salad", 20.0),
+
+#     # წვნიანები / SOUPS
+#     ("სოკოს კრემ-სუპი / Mashroom Cream-Soup", 16.0),
+#     ("სოკოს სუპი / Mashroom Soup", 14.0),
+#     ("ჩიხირთმა / Chikhirtma", 13.0),
+
+#     # ძირითადი კერძები / MAIN DISHES
+#     ("სოკო კეცზე / Mashrooms on Ketsi", 16.0),
+#     ("შემწვარი წიწილა / Roasted Chicken", 25.0),
+#     ("შქმერული / 'Shkmeruli'", 30.0),
+#     ("ოჯახური (ღორის) / 'Ojakhuri' (with pork)", 17.0),
+#     ("სოკოს ოჯახური / 'Ojakhuri' with mushrooms", 15.0),
+#     ("ოსტრი / 'Ostri' (spicy beef stew)", 21.0),
+#     ("ჩაქონდრილი / 'Chakondrili' with savory", 25.0),
+#     ("ქათმის ფრთები / Chicken Wings", 18.0),
+#     ("კოტლეტი / Cutlets", 13.0),
+#     ("მწვადი ღორის / Pork Barbecue", 18.0),
+#     ("ქაბაბი / Kebab", 19.0),
+#     ("კალმახი / Trout", 15.0),
+
+#     # ცომეული / BAKED GOODS
+#     ("ხაჭაპური იმერული / Khachapuri 'Imeruli'", 19.0),
+#     ("ლობიანი / Lobiani", 17.0),
+#     ("კუბდარი /'Kubdari'", 23.0),
+#     ("პიცა პეპერონი / Pizza Pepperoni", 25.0),
+#     ("პიცა მარგარიტა / Pizza Margarita", 27.0),
+#     ("მჭადი / Mchadi", 2.0),
+#     ("პური / Bread", 2.0),
+
+#     # გარნირი / GARNISH
+#     ("კარტოფილი ფრი / French Fries", 7.0),
+#     ("კარტოფილი მექსიკურად / Mexican Potatoes", 13.0),
+
+#     # სოუსები / SAUCES
+#     ("აჯიკა / Adjika", 5.0),
+#     ("საწებელი / Tomato sauce", 3.0),
+#     ("მაიონეზი / Mayonnaise", 3.0),
+#     ("ტყემალი / Tkemali Sauce", 3.0),
+
+#     # დესერტი / DESSERTS
+#     ("ბლინი ბანანით და შოკოლადით / Pancake with Banana&Chocolate", 15.0),
+#     ("ბლინი ნიგვზის ფანტელებით / Pancake with Walnut Flocks", 15.0),
+#     ("ბლინი ჯემით / Pancake with Jam", 10.0),
+#     ("სეზონური ხილის ასორტი / Assorted Seasonal Fruits", 22.0),
+#     ("ნაყინი / Ice Cream", 6.0)
+
+# ]
+
+
+# cursor1.executemany('''insert into menu(product_name, price)
+#                    values(?, ?)''', menu_lst)
+
+
+# conn1.commit()
+
+'''ძირითადი მენიუ'''
+def get_menu():
+    cursor1.execute('SELECT * FROM menu')
+    items = cursor1.fetchall()
+    return [(item['product_name'], item['price']) for item in items]
+
+
+'''სასაჩუქრე ბარათები თუ აქვს'''
+# def gift_card():
+#     member_number = cursor.execute('''select count(id) from customers''')
+#     member_number = cursor.fetchone()[0]
+#     if member_number == 15:
+#         return "გილოცავთ, თქვენ გაქვთ 20 პროცენტიანი ფასდაკლება ყველა პროდუქტზე"
+
+#     else:
+#         return "თქვენ არ გაქვთ არცერთი სასაჩუქრე ბარათი"
+
+# print(gift_card())
 
 
 
