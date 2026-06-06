@@ -19,11 +19,6 @@ cursor.execute('''create table if not exists customers(
 conn.commit()
 
 
-# gift_card-ის დამატება
-# cursor.execute('''ALTER TABLE customers ADD COLUMN gift_card INTEGER DEFAULT 0''')
-# conn.commit()
-
-
 '''ეს კლასსი ამოწმებს მომხმარებელთა რეგისტრაციას და ინფორმაციას'''
 class customerR:
     def __init__(self, username,  phone, email, password):
@@ -44,10 +39,10 @@ class customerR:
             return "❌ ეს მეილი უკვე რეგისტრირებულია!"
             # return False
 
-
-    def checkR(self):
-        if re.match(self.pattern, self.email):
-            self.check_mail = True
+        cursor.execute("SELECT * FROM customers WHERE username = ?", (self.username,))
+        if cursor.fetchone():
+            return "❌ ეს მომხმარებლის სახელი უკვე დაკავებულია!"
+            # return False
         
         cursor.execute("select * from customers Where phone = ?", (self.phone,))
         if cursor.fetchone():
@@ -164,6 +159,7 @@ class verification:
 
 
 #  მენიუს შექმნის ნაწილი  #
+import sqlite3
 
 conn1 = sqlite3.connect('menu.db') # db3; sqlite, sqlite3
 conn1.row_factory = sqlite3.Row
@@ -171,38 +167,15 @@ conn1.row_factory = sqlite3.Row
 cursor1 = conn1.cursor()
 
 
-# cursor1.execute('''create table if not exists menu(
-#                id integer primary key AUTOINCREMENT,
-#                product_name Nvarchar(100),
-#                price float 
-#                )''')
-# conn1.commit()
+cursor1.execute('''create table if not exists menu(
+               id integer primary key AUTOINCREMENT,
+               product_name Nvarchar(100),
+               price float 
+               )''')
+conn1.commit()
 
 
 # menu_lst = [
-#     # წყალი / WATER
-#     ("წყალი 0.5ლ/ Borjomi 0.5L", 1.0),
-#     ("ბორჯომი 1ლ / Borjomi 1L", 2.0),
-
-#     # სასმელები / SOFT DRINKS
-#     ("კოკა-კოლა 1ლ / Coca-Cola 1L", 3.5),
-#     ("კოკა-კოლა 0.5ლ / Coca-Cola 0.5L", 2.0),
-#     ("ლიმონათი / Lemonade", 2.0),
-
-#     # ცხელი სასმელები / HOT DRINKS
-#     ("ყავა ესპრესო / Espresso", 4.0),
-#     ("ყავა კაპუჩინო / Cappuccino", 6.0),
-#     ("ყავა ლატე / Latte", 7.0),
-#     ("ამერიკანო / Americano", 5.0),
-
-#     # ლუდი / BEER
-#     ("ლუდი ნატახტარი 0.5ლ / Natakhtari Beer 0.5L", 4.5),
-#     ("ლუდი ზედაზენი 0.5ლ / Zedazeni Beer 0.5L", 4.0),
-#     ("ლუდი ჰაინეკენი 0.5ლ / Heineken 0.33L", 5.0),
-
-#     # ღვინო / WINE
-#     ("ღვინო წითელი 1ლ/ Red Wine (glass) 1L", 8.5),
-#     ("ღვინო თეთრი 1ლ/ White Wine (glass) 1L", 8.5),
 #     # აპეტაიზერი / APPETIZER
 #     ("ყველი იმერული / Imeruli Cheese", 9.0),
 #     ("გუდის ყველი / Guda Cheese", 19.0),
@@ -274,50 +247,21 @@ cursor1 = conn1.cursor()
 # conn1.commit()
 
 '''ძირითადი მენიუ'''
-# def get_menu():
-#     cursor1.execute('SELECT * FROM menu')
-#     items = cursor1.fetchall()
-#     return [(item['product_name'], item['price']) for item in items]
+def get_menu():
+    cursor1.execute('SELECT * FROM menu')
+    items = cursor1.fetchall()
+    return [(item['product_name'], item['price']) for item in items]
 
 
 '''სასაჩუქრე ბარათები თუ აქვს'''
-def check_gift_card(login):
-    # მომხმარებლის id-ს ვიღებთ
-    cursor.execute("SELECT id, gift_card FROM customers WHERE email=? OR username=?", (login, login))
-    user = cursor.fetchone()
-    
-    if not user:
-        return False
-    
-    # რომელი ნომრის წევრია
-    cursor.execute("SELECT id FROM customers ORDER BY id")
-    all_ids = [row['id'] for row in cursor.fetchall()]
-    position = all_ids.index(user['id']) + 1
-    
-    # ყოველ მე-15 წევრს gift_card მიენიჭება
-    if position % 15 == 0 and user['gift_card'] == 0:
-        cursor.execute("UPDATE customers SET gift_card=1 WHERE id=?", (user['id'],))
-        conn.commit()
-    
-    return user['gift_card'] == 1
+# def gift_card():
+#     member_number = cursor.execute('''select count(id) from customers''')
+#     member_number = cursor.fetchone()[0]
+#     if member_number == 15:
+#         return "გილოცავთ, თქვენ გაქვთ 20 პროცენტიანი ფასდაკლება ყველა პროდუქტზე"
 
-
-def get_menu(login=None):
-    cursor1.execute('SELECT * FROM menu')
-    items = cursor1.fetchall()
-    
-    discount = False
-    if login:
-        discount = check_gift_card(login)
-    
-    result = []
-    for item in items:
-        price = item['price']
-        if discount:
-            price = round(price * 0.8, 2)  # 20% ფასდაკლება
-        result.append((item['product_name'], price))
-    
-    return result, discount
+#     else:
+#         return "თქვენ არ გაქვთ არცერთი სასაჩუქრე ბარათი"
 
 # print(gift_card())
 
