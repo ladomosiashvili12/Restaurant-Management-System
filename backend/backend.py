@@ -471,9 +471,3 @@ class credit_card:
         
         return "✅ ბარათი წარმატებით დაემატა"
 
-C = credit_card("411111111111111", "12/26", "326")
-print(C.validate())
-
-
-
-

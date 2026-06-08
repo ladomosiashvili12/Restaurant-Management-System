@@ -236,6 +236,10 @@ class Mainwindow(QWidget):
         self.login_red_pass.setStyleSheet("color: #ff4d4d; font-size: 11px;")
         self.login_red_pass.setFixedWidth(340)
 
+        self.witeli_login = QLabel("")
+        self.witeli_login.setStyleSheet("color: #ff4d4d; font-size: 11px;")
+        self.witeli_login.setFixedWidth(340)
+
         self.show_pass = QCheckBox("პაროლის ჩვენება")
         self.show_pass.stateChanged.connect(self.paroli)
 
@@ -252,15 +256,19 @@ class Mainwindow(QWidget):
         layout.addWidget(subtitle)
         layout.addWidget(title)
         layout.addWidget(ornament)
+        
         layout.addSpacing(8)
         layout.addWidget(lbl_name, 0, Qt.AlignCenter)
         layout.addWidget(self.login_name, 0, Qt.AlignCenter)
         layout.addWidget(self.login_red_name, 0, Qt.AlignCenter)
+        
         layout.addSpacing(4)
         layout.addWidget(lbl_pass, 0, Qt.AlignCenter)
         layout.addWidget(self.login_pass, 0, Qt.AlignCenter)
         layout.addWidget(self.login_red_pass, 0, Qt.AlignCenter)
+        layout.addWidget(self.witeli_login, 0, Qt.AlignLeft)
         layout.addWidget(self.show_pass, 0, Qt.AlignLeft)
+        
         layout.addSpacing(12)
         layout.addWidget(self.enter, 0, Qt.AlignCenter)
         layout.addWidget(self.reg, 0, Qt.AlignCenter)
@@ -272,7 +280,6 @@ class Mainwindow(QWidget):
         if not self.login_name.text().strip():
             self.login_name.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
             self.login_red_name.setText("შეიყვანეთ სახელი!")
-            valid = False
         else:
             self.login_name.setStyleSheet("")
             self.login_red_name.setText("")
@@ -280,7 +287,6 @@ class Mainwindow(QWidget):
         if not self.login_pass.text().strip():
             self.login_pass.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
             self.login_red_pass.setText("შეიყვანეთ პაროლი!")
-            valid = False
         else:
             self.login_pass.setStyleSheet("")
             self.login_red_pass.setText("")
@@ -297,7 +303,7 @@ class Mainwindow(QWidget):
                 self.current_login = login
                 self.stack.setCurrentIndex(3)  
             else:
-                self.login_red_pass.setText(result)
+                self.witeli_login.setText(result)
 
     def paroli(self, state):
         if state == Qt.Checked:
@@ -363,9 +369,9 @@ class Mainwindow(QWidget):
         self.reg_red_pass.setStyleSheet("color: #ff4d4d; font-size: 11px;")
         self.reg_red_pass.setFixedWidth(340)
 
-        self.result = QLabel("")
-        self.result.setStyleSheet("color: #ff4d4d; font-size: 11px")
-        self.result.setFixedWidth(340)
+        self.witeli_reg = QLabel("")
+        self.witeli_reg.setStyleSheet("color: #ff4d4d; font-size: 11px")
+        self.witeli_reg.setFixedWidth(340)
 
         self.show_pass_reg = QCheckBox("პაროლის ჩვენება")
         self.show_pass_reg.stateChanged.connect(self.paroli1)
@@ -398,7 +404,7 @@ class Mainwindow(QWidget):
         layout.addWidget(self.reg_pass, 0, Qt.AlignCenter)
         layout.addWidget(self.reg_red_pass, 0, Qt.AlignLeft)
         
-        layout.addWidget(self.result, 0, Qt.AlignCenter)
+        layout.addWidget(self.witeli_reg, 0, Qt.AlignCenter)
         
         layout.addWidget(self.show_pass_reg, 0, Qt.AlignLeft)
         
@@ -408,6 +414,7 @@ class Mainwindow(QWidget):
         return page
 
     def register_check(self):
+        valid = True
         if not self.reg_name.text().strip():
             self.reg_name.setStyleSheet(f"border-bottom: 1px solid #ff4d4d; background-color: {INPUT_BG};")
             self.reg_red_name.setText("შეიყვანეთ სახელი!")
@@ -436,6 +443,20 @@ class Mainwindow(QWidget):
             self.reg_pass.setStyleSheet("")
             self.reg_red_pass.setText("")
 
+        if valid:
+            username    = self.reg_name.text().strip()
+            email = self.reg_email.text().strip()
+            phone = self.reg_num.text().strip()
+            password = self.reg_pass.text().strip()
+        
+            customer = customerR(username, phone, email, password)
+            result   = customer.checkR()
+        
+            if "✅" in result:
+                self.stack.setCurrentIndex(3)  
+            else:
+                self.witeli_reg.setText(result)
+
     def paroli1(self, state):
         if state == Qt.Checked:
             self.reg_pass.setEchoMode(QLineEdit.Normal)
@@ -448,7 +469,7 @@ class Mainwindow(QWidget):
         phone    = self.reg_num.text().strip()
         password = self.reg_pass.text().strip()
         customer = customerR(username, phone, email, password)
-        self.result.setText(customer.checkR())
+        self.witeli_reg.setText(customer.checkR())
 
     # მთავარი გვერდი
     def create_main_page(self):
