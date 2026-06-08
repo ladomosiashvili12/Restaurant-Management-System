@@ -115,7 +115,7 @@ class MenuWindow(QDialog):
         #მენიუს შინაარსი
         items, discount = get_menu(login)
         if discount:
-            gift_label = QLabel("🎁 გილოცავთ! გაქვთ 20%-იანი ფასდაკლება!")
+            gift_label = QLabel("🎁 გილოცავთ!თქვენ გაქვთ 20%-იანი ფასდაკლება!")
             gift_label.setStyleSheet(f"color: {GOLD}; font-size: 14px;")
             gift_label.setAlignment(Qt.AlignCenter)
             layout.addWidget(gift_label)
