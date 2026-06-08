@@ -283,12 +283,25 @@ class verification:
 
 
 '''სასაჩუქრე ბარათები თუ აქვს'''
-# def gift_card():
-#     member_number = cursor.execute('''select count(id) from customers''')
-#     member_number = cursor.fetchone()[0]
-#     if member_number == 15:
-#         return "გილოცავთ, თქვენ გაქვთ 20 პროცენტიანი ფასდაკლება ყველა პროდუქტზე"
-
+def check_gift_card(login):
+    # მომხმარებლის id-ს ვიღებთ
+    cursor.execute("SELECT id, gift_card FROM customers WHERE email=? OR username=?", (login, login))
+    user = cursor.fetchone()
+    
+    if not user:
+        return False
+    
+    # რომელი ნომრის წევრია
+    cursor.execute("SELECT id FROM customers ORDER BY id")
+    all_ids = [row['id'] for row in cursor.fetchall()]
+    position = all_ids.index(user['id']) + 1
+    
+    # ყოველ მე-15 წევრს gift_card მიენიჭება
+    if position % 15 == 0 and user['gift_card'] == 0:
+        cursor.execute("UPDATE customers SET gift_card=1 WHERE id=?", (user['id'],))
+        conn.commit()
+    
+    return user['gift_card'] == 1
 
 # იღებს მენიუს 
 def get_menu(login=None):
