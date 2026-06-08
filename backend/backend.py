@@ -1,6 +1,11 @@
 import sqlite3
 import re
-
+# მეილის დომეინის შესამოწმებლად
+import dns.resolver
+#  ტელეფონის შესამოწმებლად
+import phonenumbers
+# დროებისთვის
+from datetime import datetime
 
 
 '''მომხმარებლების ცხრილი სადაც ინახება მათი სარეგისტრაციო ინფორმაცია'''
@@ -207,18 +212,36 @@ class customerR:
         conn.commit()
         # print("✅ მონაცემები შენახულია ბაზაში!")
         return True
+    
+        # ამოწმებს ტელეფონის ნომერს
+    def check_phone(self):                                         # ახალი მეთოდი
+        try:
+            parsed = phonenumbers.parse("+995" + self.phone, None)
+            return phonenumbers.is_valid_number(parsed)
+        except Exception:
+            return False
 
-
+        # ამოწმებს დომეინს
+    def check_domain(self):
+        try:
+            domain = self.email.split('@')[1]
+            dns.resolver.resolve(domain, 'MX')
+            return True
+        except Exception:
+            return False
         # ამოწმებს ყველაფერს თუ ყველაფერი სწორია იძახებს save_to_db მეთოდს 
     def checkR(self):
         if not self.email:
             return ""
         if re.match(self.pattern, self.email):
             self.check_mail = True
-        
+            
         if not self.check_mail:
             return "❌ მეილი არასწორია"
-
+        
+        if not self.check_domain():                        
+            return "❌ მეილის დომეინი არ არსებობს"
+        
         if len(self.password) < 8:
             return "❌ პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო"
     
@@ -240,11 +263,15 @@ class customerR:
         if not self.has_special:
             return "❌ პაროლი უნდა შეიცავდეს მინიმუმ ერთ სიმბოლოს (!, @, #, $, და ა.შ.)!"
 
-        if len(self.phone) == 9 and self.phone.isdigit():
+        clean = self.phone.replace(" ", "").replace("-", "")
+        if len(clean) == 9 and clean.isdigit():
             self.number = True
 
         if not self.number:
             return "❌ ტელეფონის ნომერი არასწორია"
+        
+        if not self.check_phone():                                 
+            return "❌ ტელეფონის ნომერი არ არსებობს"
         
         result = self.save_to_db()
         if result is True:
@@ -289,16 +316,16 @@ class customerV:
 
 
 '''მენეჯერის ვერიფიკაცია mail=manager123@res.mng.ge და password=manager1234'''
-class verification:
-    def __init__(self, mail, password):
-        self.mail = mail
-        self.password = password
+# class verificationM:
+#     def __init__(self, mail, password):
+#         self.mail = mail
+#         self.password = password
     
-    def checker(self):
-        if self.mail == "manager123@res.mng.ge" and self.password == "manager1234":
-            return True
-        else:
-            return False
+#     def checkM(self):
+#         if self.mail == "manager123@res.mng.ge" and self.password == "manager1234":
+#             return True
+#         else:
+#             return "❌ მონაცემები არასწორია"
 
 
 '''სასაჩუქრე ბარათები თუ აქვს'''
@@ -340,6 +367,112 @@ def get_menu(login=None):
     
     return result, discount
 
+
+'''მაგიდის დაჯავშნა და გაუქმება'''
+class book_table:
+    def __init__(self, table_number):
+        self.table_number = table_number
+    
+    def get_info(self):
+        cursor1.execute('''select * from reservation''')
+        items = cursor1.fetchall()
+        result = []
+        for item in items:
+            if item[2] == "Free":
+                status = "თავისუფალი"
+            else: 
+                status = "დაკავებული"
+            info = f"მაგიდის ნომერი: {item[0]}, სკამების რაოდენობა: {item[1]}, სტატუსი: {status}"
+            result.append(info)
+        return result
+    
+    def book(self):
+        cursor1.execute('''select status from reservation where id = ?''', (self.table_number,))
+        info = cursor1.fetchone()[0]
+        if info == "Free":
+            cursor1.execute('''update reservation set status='Booked' where id = ?''', (self.table_number,))
+            conn1.commit()
+            return "მაგიდა დაიჯავშნა"
+        else:
+            return "მაგიდა უკვე დაკავებულია"
+        
+    def cancel_res(self):
+        cursor1.execute('''select status from reservation where id = ?''', (self.table_number,))
+        info = cursor1.fetchone()[0]
+        if info == "Booked":
+            cursor1.execute('''update reservation set status='Free' where id = ?''', (self.table_number,))
+            conn1.commit()
+            return "მაგიდა გათავისუფლდა"
+        else:
+            return "მაგიდა უკვე თავისუფალია"
+
+
+''''საკრედიტო ბარათის დამატება'''
+class credit_card:
+    def __init__(self, card_number, date, cvc):
+        self.card_number = card_number
+        self.date = date
+        self.cvc = cvc
+
+    #  ამოწმებს ბარათის ნომერის ვალიდაციას(luhn-ის ალგორითმი)
+    def luhn_check(self) -> bool:
+        digits = [int(d) for d in self.card_number]
+        for i in range(len(digits) - 2, -1, -2):
+            digits[i] *= 2
+            if digits[i] > 9:
+                digits[i] -= 9
+        return sum(digits) % 10 == 0
+    
+    # ნახულობს თუ რომელი ბარათია გამოყენებული
+    def get_card_type(self):
+        if re.match(r'^4', self.card_number):
+            return "Visa"
+        elif re.match(r'^5[1-5]', self.card_number):
+            return "Mastercard"
+        elif re.match(r'^3[47]', self.card_number):
+            return "Amex"
+        return "უცნობი"
+
+    # ამოწმებს ვადას
+    def validate_expiry(self):
+        try:
+            month, year = self.date.split("/")
+            expiry = datetime(int("20" + year), int(month), 1)
+            return expiry >= datetime.now().replace(day=1)
+        except ValueError:
+            return False
+
+    # ამოწმებს cvc-ს
+    def validate_cvv(self):
+        card_type = self.get_card_type()
+        if card_type == "Amex":
+            return bool(re.match(r'^\d{4}$', self.cvc))
+        return bool(re.match(r'^\d{3}$', self.cvc))
+
+    #  ამოწმებს სიგრძეს
+    def validate_length(self):
+        if self.get_card_type() == "Amex":
+            return len(self.card_number) == 15
+        return len(self.card_number) == 16
+
+    # ამოწმებს ყველაფერს
+    def validate(self):
+        if not self.validate_length():
+            return "❌ ბარათის ნომრის სიგრძე არასწორია"
+        
+        if not self.luhn_check():
+            return "❌ ბარათის ნომერი არასწორია"
+        
+        if not self.validate_expiry():
+            return "❌ ბარათის ვადა გასულია ან არასწორია"
+
+        if not self.validate_cvv():
+            return "❌ CVV არასწორია"
+        
+        return "✅ ბარათი წარმატებით დაემატა"
+
+C = credit_card("411111111111111", "12/26", "326")
+print(C.validate())
 
 
 
