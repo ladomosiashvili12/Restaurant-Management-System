@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from backend.backend import customerR, get_menu, customerV #check_gift_card
+from backend.backend import customerR, get_menu, customerV, check_gift_card
 
 from PyQt5.QtWidgets import (QApplication, QWidget, QLineEdit, QLabel,
                               QPushButton, QVBoxLayout, QHBoxLayout,
