@@ -15,14 +15,14 @@ conn.row_factory = sqlite3.Row
 cursor = conn.cursor()
 
 '''მომხმარებელთა ცხრილის შექმნა'''
-# cursor.execute('''create table if not exists customers(
-#                id integer primary key autoincrement,
-#                username Nvarchar(50),
-#                phone varchar(50),
-#                email varchar(100),
-#                password varchar(50)
-#                )''')
-# conn.commit()
+cursor.execute('''create table if not exists customers(
+               id integer primary key autoincrement,
+               username Nvarchar(50),
+               phone varchar(50),
+               email varchar(100),
+               password varchar(50)
+               )''')
+conn.commit()
 
 
 # gift_card-ის დამატება
@@ -38,12 +38,12 @@ conn1.row_factory = sqlite3.Row
 cursor1 = conn1.cursor()
 
 
-# cursor1.execute('''create table if not exists menu(
-#                id integer primary key AUTOINCREMENT,
-#                product_name Nvarchar(100),
-#                price float 
-#                )''')
-# conn1.commit()
+cursor1.execute('''create table if not exists menu(
+               id integer primary key AUTOINCREMENT,
+               product_name Nvarchar(100),
+               price float 
+               )''')
+conn1.commit()
 
 
 # menu_lst = [

@@ -8,13 +8,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from backend.backend import customerR, get_menu, customerV, check_gift_card
+from backend.backend import customerR, get_menu, customerV, check_gift_card, credit_card
 
 from PyQt5.QtWidgets import (QApplication, QWidget, QLineEdit, QLabel,
                               QPushButton, QVBoxLayout, QHBoxLayout,
                               QCheckBox, QStackedWidget, QFrame, QDialog, QScrollArea)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
+from PyQt5 import QtCore
 
 # ფერები
 DARK_BG    = "#1a120b"
@@ -125,7 +126,7 @@ class MenuWindow(QDialog):
         container = QWidget()
         container_layout = QVBoxLayout(container)
 
-        for name, price in items:  # ← backend-იდან მოაქვს
+        for name, price in items:  # backend-იდან მოაქვს
             row = QHBoxLayout()
             row.addWidget(QLabel(name))
             row.addStretch()
@@ -139,6 +140,7 @@ class Mainwindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Restaurant Management System")
+        # self.showFullScreen()
         self.resize(1000, 750)
         self.setStyleSheet(MAIN_STYLE)
 
@@ -153,12 +155,19 @@ class Mainwindow(QWidget):
         self.login_page    = self.create_login_page()
         self.register_page = self.create_register_page()
         self.main_page     = self.create_main_page()
+        self.add_card_page = self.create_add_card_page()
 
         self.stack.addWidget(self.choose_page)    # index 0
         self.stack.addWidget(self.login_page)     # index 1
         self.stack.addWidget(self.register_page)  # index 2
         self.stack.addWidget(self.main_page)      # index 3
+        self.stack.addWidget(self.add_card_page)  # index 4
 
+    # def keyPressEvent(self, event):
+    #     if event.key() == Qt.Key_Escape:
+    #         self.showNormal()
+    #         self.resize(1000, 750)
+    #     super().keyPressEvent(event)
     
     # არჩევის გვერდი
     def create_choose_page(self):
@@ -491,11 +500,22 @@ class Mainwindow(QWidget):
         menu_btn = self._nav_btn("MENUS")
         menu_btn.clicked.connect(self.open_menu)
 
+        gift_btn = self._nav_btn("GIFT CARD")
+        # gift_btn.clicked.connect()
+
+        reservation_btn = self._nav_btn("RESERVATIONS")
+
+
+        contact_btn = self._nav_btn("CONTACT US")
+
+
+        addcard_btn = self._nav_btn("ADD CARD")
+        addcard_btn.clicked.connect(lambda: self.stack.setCurrentIndex(4))
 
 
         nav_layout.addWidget(about_btn)
         nav_layout.addWidget(menu_btn)
-
+        nav_layout.addWidget(gift_btn)
         nav_layout.addStretch()
 
         logo = QLabel("nammeee")
@@ -503,12 +523,7 @@ class Mainwindow(QWidget):
         logo.setStyleSheet(f"color: {GOLD}; letter-spacing: 2px;")
         logo.setAlignment(Qt.AlignCenter)
         nav_layout.addWidget(logo)
-
         nav_layout.addStretch()
-
-        right_links = ["GIFT CARD", "RESERVATIONS", "CONTACT US"]
-        for text in right_links:
-            nav_layout.addWidget(self._nav_btn(text))
 
         # გასვლის ღილაკი navbar-ში
         logout_btn = QPushButton("Log out")
@@ -526,7 +541,12 @@ class Mainwindow(QWidget):
         """)
         logout_btn.setCursor(Qt.PointingHandCursor)
         logout_btn.clicked.connect(lambda: self.stack.setCurrentIndex(0))
+
+        nav_layout.addWidget(reservation_btn)
+        nav_layout.addWidget(contact_btn)
+        nav_layout.addWidget(addcard_btn)
         nav_layout.addWidget(logout_btn)
+        # nav_layout.addStretch()
 
         hero = QWidget()
         hero.setMinimumHeight(460)
@@ -621,8 +641,86 @@ class Mainwindow(QWidget):
         return btn
     
     def open_menu(self):
-        self.menus_window = MenuWindow(login=self.current_login)
+        if hasattr(self, 'current_login'):
+            self.menus_window = MenuWindow(login=self.current_login, parent=self)
+        else:
+            self.menus_window = MenuWindow(parent=self)
+    
         self.menus_window.show()
+
+    def create_add_card_page(self):
+        page = QWidget()
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        layout.setSpacing(10)
+        page.setLayout(layout)
+
+        title = QLabel("საკრედიტო ბარათი")
+        title.setFont(QFont("Georgia", 24))
+        title.setStyleSheet(TITLE_LABEL_STYLE)
+        title.setAlignment(Qt.AlignCenter)
+
+        ornament = QLabel("— ✦ —")
+        ornament.setStyleSheet("color: rgba(212,175,55,0.5); font-size: 16px; letter-spacing: 8px;")
+        ornament.setAlignment(Qt.AlignCenter)
+
+        lbl_num = QLabel("ბარათის ნომერი:")
+        lbl_num.setStyleSheet(SMALL_LABEL_STYLE)
+        self.card_num = QLineEdit()
+        self.card_num.setPlaceholderText("1234 1234 1234 1234")
+        self.card_num.setFixedWidth(340)
+
+        lbl_date = QLabel("ვადა (MM/YY):")
+        lbl_date.setStyleSheet(SMALL_LABEL_STYLE)
+        self.card_date = QLineEdit()
+        self.card_date.setPlaceholderText("12/26")
+        self.card_date.setFixedWidth(340)
+
+        lbl_cvc = QLabel("CVC:")
+        lbl_cvc.setStyleSheet(SMALL_LABEL_STYLE)
+        self.card_cvc = QLineEdit()
+        self.card_cvc.setPlaceholderText("123")
+        self.card_cvc.setEchoMode(QLineEdit.Password)
+        self.card_cvc.setFixedWidth(340)
+
+        self.card_result = QLabel("")
+        self.card_result.setFixedWidth(340)
+
+        add_btn = QPushButton("დამატება")
+        add_btn.clicked.connect(self.check_card)
+
+        ukan = QPushButton("← უკან")
+        ukan.setStyleSheet(BACK_BTN_STYLE)
+        ukan.clicked.connect(lambda: self.stack.setCurrentIndex(3))
+
+        layout.addWidget(title)
+        layout.addWidget(ornament)
+        layout.addWidget(lbl_num)
+        layout.addWidget(self.card_num, 0, Qt.AlignCenter)
+        layout.addWidget(lbl_date)
+        layout.addWidget(self.card_date, 0, Qt.AlignCenter)
+        layout.addWidget(lbl_cvc)
+        layout.addWidget(self.card_cvc, 0, Qt.AlignCenter)
+        layout.addWidget(self.card_result, 0, Qt.AlignCenter)
+        layout.addWidget(add_btn, 0, Qt.AlignCenter)
+        layout.addWidget(ukan, 0, Qt.AlignCenter)
+        return page
+    
+    def check_card(self):
+        from backend.backend import credit_card
+        number = self.card_num.text().replace(" ", "").strip()
+        date   = self.card_date.text().strip()
+        cvc    = self.card_cvc.text().strip()
+
+        card   = credit_card(number, date, cvc)
+        result = card.validate()
+
+        if "✅" in result:
+            self.card_result.setStyleSheet("color: #4CAF50; font-size: 12px;")
+        else:
+            self.card_result.setStyleSheet("color: #ff4d4d; font-size: 12px;")
+        self.card_result.setText(result)
+
 
 
 if __name__ == "__main__":
